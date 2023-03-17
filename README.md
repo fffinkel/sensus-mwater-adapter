@@ -44,4 +44,4 @@ to discuss.
 
 ## License
 
-See [LICENSE.md](LICENSE.md)
+See [LICENSE](LICENSE)
