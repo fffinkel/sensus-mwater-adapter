@@ -1,4 +1,4 @@
-module github.com/fffinkel/sensusmwateradapter
+module github.com/fffinkel/sensus-mwater-adapter
 
 go 1.19
 
