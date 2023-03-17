@@ -26,7 +26,12 @@ jobs:
           go test -v ./... -covermode=count -coverprofile=coverage.out
           go tool cover -func=coverage.out -o=coverage.out
 
-      - name: Go Coverage Badge
-        uses: tj-actions/coverage-badge-go@v2
+      - name: Create Awesome Badge
+        uses: schneegans/dynamic-badges-action@v1.6.0
         with:
-          filename: coverage.out
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: bb5d76c3d157a2497d578e1a30564c4a
+          filename: coverage.json
+          label: Hello
+          message: World
+          color: orange
