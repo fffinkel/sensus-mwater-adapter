@@ -1,5 +1,9 @@
 # sensus-mwater-adapter
 
+![Gitlab code coverage](https://img.shields.io/gitlab/pipeline-coverage/fffinkel/sensus-mwater-adapter?branch=main)
+
+[![Go Report Card](https://goreportcard.com/badge/github.com/fffinkel/sensus-mwater-adapter)](https://goreportcard.com/report/github.com/fffinkel/sensus-mwater-adapter)
+
 ## Name
 
 Sensus-mWater Adapter
