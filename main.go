@@ -7,5 +7,8 @@ func main() {
 }
 
 func coverageFunc() string {
+	fmt.Println("sensus-mwater-adapter")
+	fmt.Println("sensus-mwater-adapter")
+	fmt.Println("sensus-mwater-adapter")
 	return "hmm!"
 }
