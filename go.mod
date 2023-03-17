@@ -1,4 +1,4 @@
-module sensusmwateradapter
+module github.com/fffinkel/sensusmwateradapter
 
 go 1.19
 
