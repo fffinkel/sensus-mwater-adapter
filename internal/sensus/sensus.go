@@ -14,6 +14,7 @@ import (
 var (
 	ErrInvalidField  = errors.New("invalid field format found in record")
 	ErrInvalidRecord = errors.New("invalid record format")
+	ErrInvalidHeader = errors.New("invalid CSV header")
 )
 
 type meterReading struct {
@@ -104,6 +105,9 @@ func parseCSV(f io.Reader) ([]meterReading, []error) {
 	for {
 		record, err := r.Read()
 		if header {
+			if len(record) != 11 {
+				return []meterReading{}, []error{ErrInvalidHeader}
+			}
 			header = false
 			continue
 		}

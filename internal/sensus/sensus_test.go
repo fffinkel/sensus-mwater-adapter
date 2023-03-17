@@ -41,3 +41,13 @@ func TestParseInvalidCSV(t *testing.T) {
 	assert.Len(t, readings, 15)
 	assert.Len(t, errors, 10)
 }
+
+func TestParseInvalidCSVHeader(t *testing.T) {
+	data, err := testdata.Open("testdata/003_invalid_header.csv")
+	if !assert.Nil(t, err) {
+		return
+	}
+	_, errors := parseCSV(data)
+	assert.Len(t, errors, 1)
+	assert.ErrorIs(t, errors[0], ErrInvalidHeader)
+}
