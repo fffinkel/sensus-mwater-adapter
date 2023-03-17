@@ -1,3 +1,3 @@
-sensusmwateradapter/main.go:5:	main		0.0%
-sensusmwateradapter/main.go:9:	coverageFunc	100.0%
-total:				(statements)	50.0%
+mode: count
+github.com/fffinkel/sensusmwateradapter/main.go:5.13,7.2 1 0
+github.com/fffinkel/sensusmwateradapter/main.go:9.28,11.2 1 1

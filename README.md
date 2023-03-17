@@ -1,8 +1,7 @@
 # Sensus-mWater Adapter
 
-![Go Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/fffinkel/bb5d76c3d157a2497d578e1a30564c4a/raw/coverage.json)
+![Go Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/fffinkel/bb5d76c3d157a2497d578e1a30564c4a/raw/coverage.json) [![Go Report Card](https://goreportcard.com/badge/github.com/fffinkel/sensus-mwater-adapter)](https://goreportcard.com/report/github.com/fffinkel/sensus-mwater-adapter)
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/fffinkel/sensus-mwater-adapter)](https://goreportcard.com/report/github.com/fffinkel/sensus-mwater-adapter)
 The Sensus-mWater Adapter is a program that is able to translate Sensus EMR
 meter reading CSVs to mWater meter reading accounting transactions.
 
