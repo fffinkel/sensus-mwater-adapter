@@ -17,3 +17,7 @@ func TestHelloWorld(t *testing.T) {
 	assert.NotEmpty(t, valid)
 	assert.NotEmpty(t, invalid)
 }
+
+func TestCoverageFunc(t *testing.T) {
+	assert.NotEmpty(t, coverageFunc())
+}
