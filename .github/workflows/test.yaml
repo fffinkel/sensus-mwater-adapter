@@ -26,7 +26,7 @@ jobs:
           go test -v ./... -covermode=count -coverprofile=coverage.out
           go tool cover -func=coverage.out -o=coverage.out
           echo "COVERAGE=$(cat coverage.out | grep total: | grep -Eo '[0-9]+\.[0-9]+')" >> $GITHUB_ENV
-          echo "COVERAGE_COLOR=$([[ $COVERAGE -gt 90 ]] && echo 'green' || echo 'red')" >> $GITHUB_ENV
+          echo "COVERAGE_COLOR=$([[ ${{ env.COVERAGE }} -gt 90 ]] && echo 'green' || echo 'red')" >> $GITHUB_ENV
 
       - name: Update Coverage Badge
         uses: schneegans/dynamic-badges-action@v1.6.0
