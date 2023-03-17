@@ -25,13 +25,14 @@ jobs:
         run: |
           go test -v ./... -covermode=count -coverprofile=coverage.out
           go tool cover -func=coverage.out -o=coverage.out
+          echo "COVERAGE=$(cat coverage.out | grep total: | grep -Eo '[0-9]+\.[0-9]+')" >> $GITHUB_ENV
 
-      - name: Create Awesome Badge
+      - name: Update Coverage Badge
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: bb5d76c3d157a2497d578e1a30564c4a
           filename: coverage.json
-          label: Hello
-          message: World
+          label: coverage
+          message: ${{ env.COVERAGE }}
           color: orange
