@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -32,9 +33,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	readings, errors := sensus.ParseCSV(data)
-	// fmt.Printf("read: %d, errored: %d", len(readings), len(errors))
+	readings, _ := sensus.ParseCSV(data)
 
 	for i, reading := range readings {
+		fmt.Printf("%d, %s", i, reading.MeterID)
 	}
 }

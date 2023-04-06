@@ -16,8 +16,8 @@ func TestNewMeterReading(t *testing.T) {
 	if !assert.Nil(t, err) {
 		return
 	}
-	assert.Equal(t, "abcd-1234-!@#$", reading.meterID)
-	assert.Equal(t, 99, reading.readingValue)
+	assert.Equal(t, "abcd-1234-!@#$", reading.MeterID)
+	assert.Equal(t, 99, reading.ReadingValue)
 }
 
 func TestParseCSV(t *testing.T) {
