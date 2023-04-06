@@ -4,5 +4,5 @@ BINPATH=$(dirname $0)
 PKGPATH=$BINPATH/..
 
 cd $PKGPATH
-go build $PKGPATH
-$PKGPATH/sensus-mwater-adapter $@
+go build ./cmd/sensus-mwater-adapter
+./sensus-mwater-adapter $@
