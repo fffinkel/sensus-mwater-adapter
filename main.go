@@ -6,7 +6,12 @@ import (
 	"log"
 	"os"
 
+	"github.com/fffinkel/sensus-mwater-adapter/internal/mwater"
 	"github.com/fffinkel/sensus-mwater-adapter/internal/sensus"
+)
+
+const (
+	mWaterBaseURL = "https://api.mwater.co/v3/"
 )
 
 var dryRun bool
@@ -34,6 +39,12 @@ func main() {
 	}
 
 	readings, _ := sensus.ParseCSV(data)
+
+	_, err = mwater.NewClient(mWaterBaseURL)
+	if err != nil {
+		log.Printf("error setting up mwater client: %s", err.Error())
+		os.Exit(1)
+	}
 
 	for i, reading := range readings {
 		fmt.Printf("%d, %s", i, reading.MeterID)

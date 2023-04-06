@@ -29,23 +29,23 @@ func generateID() string {
 	return string(b)
 }
 
-type mwaterClient struct {
+type MWaterClient struct {
 	url      string
 	clientID string
 }
 
-func newMwaterClient(url string) (mwaterClient, error) {
-	c := mwaterClient{
+func NewClient(url string) (MWaterClient, error) {
+	c := MWaterClient{
 		url: baseURL,
 	}
 	err := c.doLogin()
 	if err != nil {
-		return mwaterClient{}, errors.Wrap(err, "error logging in")
+		return MWaterClient{}, errors.Wrap(err, "error logging in")
 	}
 	return c, nil
 }
 
-func (c mwaterClient) doLogin() error {
+func (c MWaterClient) doLogin() error {
 	body, err := json.Marshal(map[string]string{
 		"username": username,
 		"password": password,
@@ -66,7 +66,7 @@ func (c mwaterClient) doLogin() error {
 	return nil
 }
 
-func (c mwaterClient) doJSONPost(resource string, body []byte) ([]byte, error) {
+func (c MWaterClient) doJSONPost(resource string, body []byte) ([]byte, error) {
 	if c.clientID == "" {
 		return nil, errors.New("client ID not set, must log in")
 	}
