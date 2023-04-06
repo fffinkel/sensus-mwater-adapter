@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	baseURL     = "https://api.mwater.co/v3/"
 	letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	toAccount   = "06f02573df334d2fb740ce82761d8f4e"
 	fromAccount = "e4778eebcb6846898bd962a670bc430c"
@@ -20,6 +19,25 @@ const (
 	username    = "TODO"
 	password    = "TODO"
 )
+
+type Transaction struct {
+	CustomerID  string
+	ToAccount   string
+	FromAccount string
+}
+
+func NewTransaction() Transaction {
+	return Transaction{
+		CustomerID:  customerID,
+		ToAccount:   toAccount,
+		FromAccount: fromAccount,
+	}
+}
+
+func (t Transaction) Sync(dryRun bool) error {
+	fmt.Printf("FAKE uploading transaction to mWater %s, %+v", t.CustomerID, dryRun)
+	return nil
+}
 
 func generateID() string {
 	b := make([]byte, 32)
@@ -30,17 +48,19 @@ func generateID() string {
 }
 
 type MWaterClient struct {
-	url      string
-	clientID string
+	URL      string
+	ClientID string
 }
 
-func NewClient(url string) (MWaterClient, error) {
+func NewClient(url string, dryRun bool) (MWaterClient, error) {
 	c := MWaterClient{
-		url: baseURL,
+		URL: url,
 	}
-	err := c.doLogin()
-	if err != nil {
-		return MWaterClient{}, errors.Wrap(err, "error logging in")
+	if !dryRun {
+		err := c.doLogin()
+		if err != nil {
+			return MWaterClient{}, errors.Wrap(err, "error logging in")
+		}
 	}
 	return c, nil
 }
@@ -62,15 +82,15 @@ func (c MWaterClient) doLogin() error {
 	if err != nil {
 		return errors.Wrap(err, "unable to unmarshal response json")
 	}
-	c.clientID = string(clientID)
+	c.ClientID = string(clientID)
 	return nil
 }
 
 func (c MWaterClient) doJSONPost(resource string, body []byte) ([]byte, error) {
-	if c.clientID == "" {
+	if c.ClientID == "" {
 		return nil, errors.New("client ID not set, must log in")
 	}
-	url := fmt.Sprintf("%s/v3/%s?client=%s", c.url, resource, c.clientID)
+	url := fmt.Sprintf("%s/v3/%s?client=%s", c.URL, resource, c.ClientID)
 	res, err := http.Post(url, "application/json", bytes.NewReader(body))
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to complete Get request")
