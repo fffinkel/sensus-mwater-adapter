@@ -103,7 +103,8 @@ func newMeterReadingFromRecord(r []string) (meterReading, error) {
 	}, nil
 }
 
-func parseCSV(f io.Reader) ([]meterReading, []error) {
+func ParseCSV(f io.Reader) ([]meterReading, []error) {
+	log.Print("parsing started")
 	r := csv.NewReader(f)
 	mrs := make([]meterReading, 0)
 	header := true
@@ -121,15 +122,18 @@ func parseCSV(f io.Reader) ([]meterReading, []error) {
 			break
 		}
 		if err != nil {
-			log.Fatal(err) // TODO?
+			log.Printf("error reading csv line: %s", err.Error())
+			errs = append(errs, err)
+			continue
 		}
 		mr, err := newMeterReadingFromRecord(record)
 		if err != nil {
+			log.Printf("error parsing csv record: %s", err.Error())
 			errs = append(errs, err)
 		} else {
 			mrs = append(mrs, mr)
 		}
 	}
-	log.Printf("finished parsing CSV, %d successful, %d errors", len(mrs), len(errs))
+	log.Printf("parsing finished: %d successful, %d errors", len(mrs), len(errs))
 	return mrs, errs
 }

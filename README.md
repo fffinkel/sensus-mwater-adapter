@@ -12,6 +12,18 @@ Sending clients must use Basic authentication.
 
 ## Usage
 
+Process a Sensus CSV:
+
+```
+$ sensus-mwater-adapter input.csv
+```
+
+Process a Sensus CSV, but do not send the mWater HTTP requests.
+
+```
+$ sensus-mwater-adapter --dry-run input.csv
+```
+
 ### Configuration
 
 customer: Customer ID

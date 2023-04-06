@@ -25,7 +25,7 @@ func TestParseCSV(t *testing.T) {
 	if !assert.Nil(t, err) {
 		return
 	}
-	readings, errors := parseCSV(data)
+	readings, errors := ParseCSV(data)
 	if !assert.Len(t, errors, 0) {
 		return
 	}
@@ -37,7 +37,7 @@ func TestParseInvalidCSVFields(t *testing.T) {
 	if !assert.Nil(t, err) {
 		return
 	}
-	readings, errors := parseCSV(data)
+	readings, errors := ParseCSV(data)
 	assert.Len(t, readings, 15)
 	assert.Len(t, errors, 10)
 	for _, err := range errors {
@@ -50,7 +50,7 @@ func TestParseInvalidCSVHeader(t *testing.T) {
 	if !assert.Nil(t, err) {
 		return
 	}
-	_, errors := parseCSV(data)
+	_, errors := ParseCSV(data)
 	assert.Len(t, errors, 1)
 	assert.ErrorIs(t, errors[0], ErrInvalidHeader)
 }
