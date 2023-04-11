@@ -20,6 +20,10 @@ const (
 	password    = "TODO"
 )
 
+var (
+	ErrNoClientID = errors.New("client id not set")
+)
+
 type Transaction struct {
 	CustomerID  string
 	ToAccount   string
@@ -50,11 +54,14 @@ func generateID() string {
 type MWaterClient struct {
 	URL      string
 	ClientID string
+
+	dryRun bool
 }
 
 func NewClient(url string, dryRun bool) (MWaterClient, error) {
 	c := MWaterClient{
-		URL: url,
+		URL:    url,
+		dryRun: dryRun,
 	}
 	if !dryRun {
 		err := c.doLogin()
@@ -65,6 +72,10 @@ func NewClient(url string, dryRun bool) (MWaterClient, error) {
 	return c, nil
 }
 
+type MWaterResponse struct {
+	ClientID string
+}
+
 func (c MWaterClient) doLogin() error {
 	body, err := json.Marshal(map[string]string{
 		"username": username,
@@ -73,33 +84,65 @@ func (c MWaterClient) doLogin() error {
 	if err != nil {
 		return errors.Wrap(err, "unable to marshal json")
 	}
-	responseJSON, err := c.doJSONPost("clients", body)
+
+	// url := fmt.Sprintf("%s/clients", c.URL)
+	// res, err := http.Post(url, "application/json", bytes.NewReader(body))
+	// if err != nil {
+	// 	return errors.Wrap(err, "unable to complete post request")
+	// }
+
+	// defer res.Body.Close()
+	// out, err := ioutil.ReadAll(res.Body)
+	// if err != nil {
+	// 	return errors.Wrap(err, "unable to read response data")
+	// }
+
+	out, err := c.doJSONPost("clients", string(body))
 	if err != nil {
-		return errors.Wrap(err, "error getting client ID")
+		return errors.Wrap(err, "error posting login json")
 	}
-	var clientID []byte
-	err = json.Unmarshal(responseJSON, &clientID)
+
+	var mwr MWaterResponse
+	err = json.Unmarshal(out, &mwr)
 	if err != nil {
 		return errors.Wrap(err, "unable to unmarshal response json")
 	}
-	c.ClientID = string(clientID)
+	c.ClientID = mwr.ClientID
 	return nil
 }
 
-func (c MWaterClient) doJSONPost(resource string, body []byte) ([]byte, error) {
-	if c.ClientID == "" {
-		return nil, errors.New("client ID not set, must log in")
-	}
-	url := fmt.Sprintf("%s/v3/%s?client=%s", c.URL, resource, c.ClientID)
-	res, err := http.Post(url, "application/json", bytes.NewReader(body))
+func (c MWaterClient) doJSONPost(resource, body string) ([]byte, error) {
+	res, err := http.Post(fmt.Sprintf("%s/%s", c.URL, resource), "application/json", bytes.NewReader([]byte(body)))
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to complete Get request")
+		return nil, errors.Wrap(err, "unable to complete post request")
 	}
 	defer res.Body.Close()
 	out, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to read response data")
 	}
+	return out, nil
+}
+
+func (c MWaterClient) postObject(object, body string) ([]byte, error) {
+	if c.ClientID == "" {
+		return nil, ErrNoClientID
+	}
+	resource := fmt.Sprintf("v3/%s?client=%s", object, c.ClientID)
+	out, err := c.doJSONPost(resource, body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error posting login json")
+	}
+
+	// res, err := http.Post(fmt.Sprintf("%s/v3/%s?client=%s", c.URL, resource, c.ClientID), "application/json", bytes.NewReader(body))
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "unable to complete post request")
+	// }
+	// defer res.Body.Close()
+	// out, err := ioutil.ReadAll(res.Body)
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "unable to read response data")
+	// }
 	return out, nil
 }
 
