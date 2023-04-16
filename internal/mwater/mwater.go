@@ -84,24 +84,10 @@ func (c MWaterClient) doLogin() error {
 	if err != nil {
 		return errors.Wrap(err, "unable to marshal json")
 	}
-
-	// url := fmt.Sprintf("%s/clients", c.URL)
-	// res, err := http.Post(url, "application/json", bytes.NewReader(body))
-	// if err != nil {
-	// 	return errors.Wrap(err, "unable to complete post request")
-	// }
-
-	// defer res.Body.Close()
-	// out, err := ioutil.ReadAll(res.Body)
-	// if err != nil {
-	// 	return errors.Wrap(err, "unable to read response data")
-	// }
-
 	out, err := c.doJSONPost("clients", string(body))
 	if err != nil {
 		return errors.Wrap(err, "error posting login json")
 	}
-
 	var mwr MWaterResponse
 	err = json.Unmarshal(out, &mwr)
 	if err != nil {
@@ -124,25 +110,15 @@ func (c MWaterClient) doJSONPost(resource, body string) ([]byte, error) {
 	return out, nil
 }
 
-func (c MWaterClient) postObject(object, body string) ([]byte, error) {
+func (c MWaterClient) postCollection(object, body string) ([]byte, error) {
 	if c.ClientID == "" {
 		return nil, ErrNoClientID
 	}
 	resource := fmt.Sprintf("v3/%s?client=%s", object, c.ClientID)
 	out, err := c.doJSONPost(resource, body)
 	if err != nil {
-		return nil, errors.Wrap(err, "error posting login json")
+		return nil, errors.Wrap(err, "error posting object")
 	}
-
-	// res, err := http.Post(fmt.Sprintf("%s/v3/%s?client=%s", c.URL, resource, c.ClientID), "application/json", bytes.NewReader(body))
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "unable to complete post request")
-	// }
-	// defer res.Body.Close()
-	// out, err := ioutil.ReadAll(res.Body)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "unable to read response data")
-	// }
 	return out, nil
 }
 

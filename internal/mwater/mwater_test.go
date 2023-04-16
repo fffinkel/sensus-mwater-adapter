@@ -47,11 +47,25 @@ func TestNewClient(t *testing.T) {
 	assert.NotNil(t, client)
 }
 
-func TestNewClientLoginFailed(t *testing.T) {
-
-	// login failure
+func TestNewClientLoginError(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, client")
+		http.Error(w, "this is invalid json", http.StatusBadRequest)
+		return
+	}))
+	defer ts.Close()
+
+	_, err := NewClient(ts.URL, false)
+	if !assert.NotNil(t, err) {
+		return
+	}
+	assert.Contains(t, err.Error(), "unable to unmarshal response json")
+}
+
+func TestNewClientLoginFailed(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO what does an actual login failure look like?
+		http.Error(w, `{"error":"TODO"}`, http.StatusBadRequest)
+		return
 	}))
 	defer ts.Close()
 
@@ -63,9 +77,10 @@ func TestNewClientLoginFailed(t *testing.T) {
 }
 
 func TestPostObjectNotLoggedIn(t *testing.T) {
-
+	// TODO what does an actual not logged in error look like?
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, `{"doesnt":"matter"}`)
+		http.Error(w, `{"error":"TODO"}`, http.StatusBadRequest)
+		return
 	}))
 	defer ts.Close()
 
@@ -73,16 +88,28 @@ func TestPostObjectNotLoggedIn(t *testing.T) {
 	if !assert.Nil(t, err) {
 		return
 	}
-	_, err = client.postObject("nothing", "")
+	_, err = client.postCollection("nothing", "")
 	if !assert.NotNil(t, err) {
 		return
 	}
 	assert.ErrorIs(t, err, ErrNoClientID)
 }
 
-func TestPostObject(t *testing.T) {
+func TestPostObjectDryRun(t *testing.T) {
+	client, err := NewClient("http://test.com", true)
+	if !assert.Nil(t, err) {
+		return
+	}
+	_, err = client.postCollection("nothing", "")
+	if !assert.NotNil(t, err) {
+		return
+	}
+	assert.NotNil(t, err)
+}
 
+func TestPostObject(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO what does a response look like?
 		fmt.Fprintln(w, `{"Thing":"Hello, client"}`)
 	}))
 	defer ts.Close()
@@ -91,25 +118,55 @@ func TestPostObject(t *testing.T) {
 	if !assert.Nil(t, err) {
 		return
 	}
-	assert.NotNil(t, client)
+	if !assert.NotNil(t, client) {
+		return
+	}
 
 	client.ClientID = "nothing"
 
-	out, err := client.postObject("nothing", "")
+	out, err := client.postCollection("nothing", "")
 	if !assert.Nil(t, err) {
 		return
 	}
-	assert.Equal(t, out, "Hello, client")
+	assert.Equal(t, `{"Thing":"Hello, client"}`+"\n", string(out))
 }
 
-// res, err := http.Get(ts.URL)
-// if err != nil {
-// 	log.Fatal(err)
-// }
-// greeting, err := io.ReadAll(res.Body)
-// res.Body.Close()
-// if err != nil {
-// 	log.Fatal(err)
-// }
+func TestDoJSONPostError(t *testing.T) {
+	_, err := NewClient("this.doesnt.work", false)
+	if !assert.NotNil(t, err) {
+		return
+	}
+	assert.Contains(t, err.Error(), "unable to complete post request")
+}
 
-// fmt.Printf("%s", greeting)
+func TestPostCollectionError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO what does a response look like?
+		fmt.Fprintln(w, `{"Thing":"Hello, client"}`)
+	}))
+	client, err := NewClient(ts.URL, false)
+	if !assert.Nil(t, err) {
+		return
+	}
+	if !assert.NotNil(t, client) {
+		return
+	}
+
+	client.ClientID = "nothing"
+	client.URL = "invalid"
+
+	_, err = client.postCollection("nothing", "")
+	if !assert.NotNil(t, err) {
+		return
+	}
+	assert.Contains(t, err.Error(), "error posting object")
+}
+
+//                     "_id": "xxxxx7013ae9443098d2faf6a522ea8a",
+//                     "date": "2023-01-09",
+//                     "customer": "xxxxx51f0b054591aa96c2ad920301ee",
+//                     "to_account": "xxxxx380765a4266877ec8f5ebc14704",
+//                     "meter_start": 10620.4,
+//                     "from_account": "xxxxx970573a4580b37611c82436e818",
+//                     "amount": 204.83000000000038,
+//                     "meter_end": 10820
