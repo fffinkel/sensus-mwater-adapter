@@ -16,5 +16,21 @@ func TestConvertReadingToTransaction(t *testing.T) {
 	if !assert.Nil(t, err) {
 		return
 	}
-	assert.Equal(t, transaction.CustomerID, "this_is_a_test")
+	assert.Equal(t, transaction.CustomerID, "asdf_this_is_a_test")
+}
+
+func TestConvertReadingsToTransactions(t *testing.T) {
+	readings := []sensus.MeterReading{
+		sensus.MeterReading{
+			MeterID: "this_is_a_test",
+		},
+		sensus.MeterReading{
+			MeterID: "this_is_another_test",
+		},
+	}
+	txns, err := convertReadingsToTransactions(readings)
+	if !assert.Nil(t, err) {
+		return
+	}
+	assert.Equal(t, len(txns), len(readings))
 }

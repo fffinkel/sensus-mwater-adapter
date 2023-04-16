@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -19,7 +18,6 @@ const (
 	customerID  = "2c32c34d50e64e3eb50d4101c5673344"
 	username    = "TODO"
 	password    = "TODO"
-	timeZone    = "Asia/Shanghai"
 )
 
 var (
@@ -63,13 +61,8 @@ func getTransactionCollections(txns []Transaction) Collections {
 }
 
 func NewTransaction() Transaction {
-	tz, err := time.LoadLocation(timeZone)
-	if err != nil {
-		panic(err)
-	}
 	return Transaction{
 		ID:          generateID(),
-		Date:        time.Now().In(tz).Format("2006-01-02"),
 		CustomerID:  customerID,
 		ToAccount:   toAccount,
 		FromAccount: fromAccount,

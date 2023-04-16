@@ -31,11 +31,6 @@ type MeterReading struct {
 	CustomAlert      bool
 }
 
-// TODO where will we store this value?
-func getLastReadingValue(meterID string) (int, error) {
-	return 0, nil
-}
-
 func errField(id, name string, err error) error {
 	return fmt.Errorf("%w '%s' in field '%s': %s", ErrInvalidField, id, name, err)
 }
@@ -43,7 +38,9 @@ func errField(id, name string, err error) error {
 func newMeterReading(id string, value int) (MeterReading, error) {
 	now := time.Now()
 	return MeterReading{
-		MeterID:          id,
+		MeterID: id,
+
+		// TODO this is wrong
 		ReadingTimestamp: now,
 		ReadingValue:     value,
 	}, nil
