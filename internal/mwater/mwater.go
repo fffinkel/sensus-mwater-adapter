@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -18,6 +19,7 @@ const (
 	customerID  = "2c32c34d50e64e3eb50d4101c5673344"
 	username    = "TODO"
 	password    = "TODO"
+	timeZone    = "Asia/Shanghai"
 )
 
 var (
@@ -25,13 +27,49 @@ var (
 )
 
 type Transaction struct {
-	CustomerID  string
-	ToAccount   string
-	FromAccount string
+	ID          string  `json:"_id"`
+	Date        string  `json:"date"`
+	CustomerID  string  `json:"customer"`
+	ToAccount   string  `json:"to_account"`
+	FromAccount string  `json:"from_account"`
+	MeterStart  float64 `json:"meter_start"`
+	MeterEnd    float64 `json:"meter_end"`
+	Amount      float64 `json:"amount"`
+}
+
+type Collections struct {
+	CollectionsToUpsert []Collection `json:"collectionsToUpsert"`
+	CollectionsToDelete []Collection `json:"collectionsToDelete"`
+}
+
+func (cols Collections) toJSON() ([]byte, error) {
+	return json.Marshal(cols)
+}
+
+type Collection struct {
+	Name    string        `json:"collection"`
+	Entries []Transaction `json:"entries"`
+	Bases   []string      `json:"bases"`
+}
+
+func getTransactionCollections(txns []Transaction) Collections {
+	col := Collection{
+		Name: "custom.ts4.transactions",
+	}
+	for _, txn := range txns {
+		col.Entries = append(col.Entries, txn)
+	}
+	return Collections{CollectionsToUpsert: []Collection{col}}
 }
 
 func NewTransaction() Transaction {
+	tz, err := time.LoadLocation(timeZone)
+	if err != nil {
+		panic(err)
+	}
 	return Transaction{
+		ID:          generateID(),
+		Date:        time.Now().In(tz).Format("2006-01-02"),
 		CustomerID:  customerID,
 		ToAccount:   toAccount,
 		FromAccount: fromAccount,
@@ -121,8 +159,6 @@ func (c MWaterClient) postCollection(object, body string) ([]byte, error) {
 	}
 	return out, nil
 }
-
-// func getReqeustJSON
 
 // {
 //     "collectionsToUpsert": [

@@ -2,9 +2,11 @@ package mwater
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -162,11 +164,35 @@ func TestPostCollectionError(t *testing.T) {
 	assert.Contains(t, err.Error(), "error posting object")
 }
 
-//                     "_id": "xxxxx7013ae9443098d2faf6a522ea8a",
-//                     "date": "2023-01-09",
-//                     "customer": "xxxxx51f0b054591aa96c2ad920301ee",
-//                     "to_account": "xxxxx380765a4266877ec8f5ebc14704",
-//                     "meter_start": 10620.4,
-//                     "from_account": "xxxxx970573a4580b37611c82436e818",
-//                     "amount": 204.83000000000038,
-//                     "meter_end": 10820
+func getTestTransaction() Transaction {
+	rand.Seed(time.Now().UnixNano())
+	txn := NewTransaction()
+	txn.MeterStart = float64(rand.Intn(1000000)) + rand.Float64()
+	txn.Amount = float64(rand.Intn(1000)) + rand.Float64()
+	txn.MeterEnd = txn.MeterStart + float64(txn.Amount)
+	return txn
+}
+
+func TestGetTransactionCollections(t *testing.T) {
+	txns := []Transaction{}
+	for i := 0; i < 5; i++ {
+		txns = append(txns, getTestTransaction())
+	}
+	cols := getTransactionCollections(txns)
+	assert.Equal(t, cols.CollectionsToUpsert[0].Name, "custom.ts4.transactions")
+	assert.Len(t, cols.CollectionsToUpsert[0].Entries, 5)
+}
+
+func TestGetTransactionCollectionsJSON(t *testing.T) {
+	txns := []Transaction{}
+	for i := 0; i < 2; i++ {
+		txns = append(txns, getTestTransaction())
+	}
+	cols := getTransactionCollections(txns)
+	json, err := cols.toJSON()
+	if !assert.Nil(t, err) {
+		return
+	}
+	assert.Contains(t, string(json), fmt.Sprintf(`"meter_start":%v`, txns[0].MeterStart))
+	assert.Contains(t, string(json), fmt.Sprintf(`"meter_start":%v`, txns[1].MeterStart))
+}
