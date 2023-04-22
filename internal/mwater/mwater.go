@@ -70,7 +70,7 @@ func NewTransaction() Transaction {
 }
 
 func (t Transaction) Sync(dryRun bool) error {
-	fmt.Printf("FAKE uploading transaction to mWater %s, %+v", t.CustomerID, dryRun)
+	fmt.Printf("TODO uploading transaction to mWater %s, %+v\n", t.CustomerID, dryRun)
 	return nil
 }
 
