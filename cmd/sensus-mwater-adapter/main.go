@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 
@@ -36,27 +35,37 @@ func main() {
 
 	data, err := os.Open(filename)
 	if err != nil {
-		log.Printf("error opening CSV [%s]: %s", filename, err.Error())
+		log.Printf("error opening csv [%s]: %s", filename, err.Error())
 		os.Exit(1)
 	}
 
-	readings, _ := sensus.ParseCSV(data)
+	readings, err := sensus.ParseCSV(data)
+	if err != nil {
+		log.Printf("error parsing csv: %s", err.Error())
+		os.Exit(1)
+	}
 
-	_, err = mwater.NewClient(mWaterBaseURL, dryRun)
+	client, err = mwater.NewClient(mWaterBaseURL, dryRun)
 	if err != nil {
 		log.Printf("error setting up mwater client: %s", err.Error())
 		os.Exit(1)
 	}
 
-	for i, reading := range readings {
-		fmt.Printf("%d, %s\n", i, reading.MeterID)
-
-		txn, err := convertReadingToTransaction(reading)
-		if err != nil {
-			log.Printf("error converting sensus reading to mwater transaction: %s", err.Error())
-			continue
-		}
-
-		txn.Sync(dryRun)
+	err = sync(sensusReadings, mWaterClient)
+	if err != nil {
+		log.Printf("error syncing sensus readings to mwater transaction: %s", err.Error())
+		os.Exit(1)
 	}
+
+	// for i, reading := range readings {
+	// 	fmt.Printf("%d, %s\n", i, reading.MeterID)
+
+	// 	txn, err := convertReadingToTransaction(reading)
+	// 	if err != nil {
+	// 		log.Printf("error converting sensus reading to mwater transaction: %s", err.Error())
+	// 		continue
+	// 	}
+
+	// 	txn.Sync(dryRun)
+	// }
 }

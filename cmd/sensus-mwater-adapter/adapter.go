@@ -1,9 +1,20 @@
 package main
 
 import (
+	"errors"
+
 	"github.com/fffinkel/sensus-mwater-adapter/internal/mwater"
 	"github.com/fffinkel/sensus-mwater-adapter/internal/sensus"
 )
+
+func sync(readings []sensus.MeterReading, client mwater.Client) error {
+	txns, err := convertReadingsToTransactions(readings)
+	if err != nil {
+		return nil, errors.Wrap(err, "error converting readings to transactions")
+	}
+
+	//client.
+}
 
 func convertReadingsToTransactions(readings []sensus.MeterReading) ([]mwater.Transaction, error) {
 	txns := make([]mwater.Transaction, len(readings))
