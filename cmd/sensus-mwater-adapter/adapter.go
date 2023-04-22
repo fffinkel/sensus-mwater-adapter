@@ -9,7 +9,7 @@ import (
 
 var ErrEmptyMeterID = errors.New("empty meter id")
 
-func sync(readings []sensus.MeterReading, client mwater.Client) error {
+func sync(client *mwater.Client, readings []sensus.MeterReading) error {
 	txns, err := convertReadingsToTransactions(readings)
 	if err != nil {
 		return errors.Wrap(err, "error converting readings to transactions")
@@ -36,36 +36,24 @@ func convertReadingsToTransactions(readings []sensus.MeterReading) ([]mwater.Tra
 }
 
 func convertReadingToTransaction(reading sensus.MeterReading) (mwater.Transaction, error) {
-	txn := mwater.NewTransaction()
-	customerID, err := getCustomerIDFromMeterID(reading.MeterID)
+	lastReadingValue, err := getLastReadingValue(reading.MeterID)
 	if err != nil {
-		return mwater.Transaction{}, err // TODO
+		return mwater.Transaction{}, err
 	}
+	txn := mwater.NewTransaction()
 	txn.Date = reading.ReadingTimestamp.Format("2006-01-02")
-	txn.CustomerID = customerID
-	txn.ToAccount = getToAccount()
-	txn.FromAccount = getFromAccount()
-	txn.MeterStart = getLastReadingValue(reading.MeterID)
+	txn.CustomerID = reading.MeterID
+	txn.ToAccount = toAccount
+	txn.FromAccount = fromAccount
+	txn.MeterStart = lastReadingValue
 	txn.MeterEnd = float64(reading.ReadingValue)
 	txn.Amount = txn.MeterEnd - txn.MeterStart
 	return txn, nil
 }
 
-func getCustomerIDFromMeterID(meterID string) (string, error) {
+func getLastReadingValue(meterID string) (float64, error) {
 	if meterID == "" {
-		return "", ErrEmptyMeterID
+		return 0, ErrEmptyMeterID
 	}
-	return "asdf_" + meterID, nil
-}
-
-func getToAccount() string {
-	return "06f02573df334d2fb740ce82761d8f4e"
-}
-
-func getFromAccount() string {
-	return "e4778eebcb6846898bd962a670bc430c"
-}
-
-func getLastReadingValue(meterID string) float64 {
-	return 1000000.0
+	return 1000000.0, nil
 }

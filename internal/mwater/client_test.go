@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewClientDryRun(t *testing.T) {
-	client, err := NewClient("example.com", true)
+	client, err := NewClient("example.com", "", "", true)
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -19,11 +20,15 @@ func TestNewClientDryRun(t *testing.T) {
 
 func TestNewClient(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, `{"clientID":"TODO_CHANGE_ME"}`)
+		if strings.Contains(r.URL.Path, "clients") {
+			fmt.Fprintln(w, `{"client_id":"fake_logged_in_fake"}`)
+		} else {
+			fmt.Fprintln(w, "")
+		}
 	}))
 	defer ts.Close()
 
-	client, err := NewClient(ts.URL, false)
+	client, err := NewClient(ts.URL, "", "", false)
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -37,7 +42,7 @@ func TestNewClientLoginError(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	_, err := NewClient(ts.URL, false)
+	_, err := NewClient(ts.URL, "", "", false)
 	if !assert.NotNil(t, err) {
 		return
 	}
@@ -52,7 +57,7 @@ func TestNewClientLoginFailed(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client, err := NewClient(ts.URL, false)
+	client, err := NewClient(ts.URL, "", "", false)
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -67,7 +72,7 @@ func TestPostObjectNotLoggedIn(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client, err := NewClient(ts.URL, false)
+	client, err := NewClient(ts.URL, "", "", false)
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -79,7 +84,7 @@ func TestPostObjectNotLoggedIn(t *testing.T) {
 }
 
 func TestPostObjectDryRun(t *testing.T) {
-	client, err := NewClient("http://test.com", true)
+	client, err := NewClient("http://test.com", "", "", true)
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -97,7 +102,7 @@ func TestPostObject(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client, err := NewClient(ts.URL, false)
+	client, err := NewClient(ts.URL, "", "", false)
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -105,7 +110,7 @@ func TestPostObject(t *testing.T) {
 		return
 	}
 
-	client.ClientID = "nothing"
+	client.clientID = "nothing"
 
 	out, err := client.PostCollections(Collections{})
 	if !assert.Nil(t, err) {
@@ -115,7 +120,7 @@ func TestPostObject(t *testing.T) {
 }
 
 func TestDoJSONPostError(t *testing.T) {
-	_, err := NewClient("this.doesnt.work", false)
+	_, err := NewClient("this.doesnt.work", "", "", false)
 	if !assert.NotNil(t, err) {
 		return
 	}
@@ -127,7 +132,7 @@ func TestPostCollectionError(t *testing.T) {
 		// TODO what does a response look like?
 		fmt.Fprintln(w, `{"Thing":"Hello, client"}`)
 	}))
-	client, err := NewClient(ts.URL, false)
+	client, err := NewClient(ts.URL, "", "", false)
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -135,8 +140,8 @@ func TestPostCollectionError(t *testing.T) {
 		return
 	}
 
-	client.ClientID = "nothing"
-	client.URL = "invalid"
+	client.clientID = "nothing"
+	client.baseURL = "invalid"
 
 	_, err = client.PostCollections(Collections{})
 	if !assert.NotNil(t, err) {

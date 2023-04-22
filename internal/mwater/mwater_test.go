@@ -10,8 +10,9 @@ import (
 )
 
 func TestNewTransaction(t *testing.T) {
-	txn := NewTransaction()
-	assert.Equal(t, txn.CustomerID, customerID)
+	txnA := NewTransaction()
+	txnB := NewTransaction()
+	assert.NotEqual(t, txnA.ID, txnB.ID)
 }
 
 func TestGenerateID(t *testing.T) {

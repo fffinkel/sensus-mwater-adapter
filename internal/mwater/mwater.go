@@ -46,6 +46,8 @@ func GetTransactionCollections(txns []Transaction) Collections {
 	return Collections{CollectionsToUpsert: []Collection{col}}
 }
 
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
 func generateID() string {
 	b := make([]byte, 32)
 	for i := range b {
@@ -55,12 +57,7 @@ func generateID() string {
 }
 
 func NewTransaction() Transaction {
-	return Transaction{
-		ID:          generateID(),
-		CustomerID:  customerID,
-		ToAccount:   toAccount,
-		FromAccount: fromAccount,
-	}
+	return Transaction{ID: generateID()}
 }
 
 // {

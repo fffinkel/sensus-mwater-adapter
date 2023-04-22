@@ -8,7 +8,12 @@ meter reading CSVs to mWater meter reading accounting transactions.
 It receives CSVs through HTTP POST requests, translates each line in the CSV to
 an mWater transaction, and assembles a final POST request to mWater's API.
 
+## Authentication
+
 Sending clients must use Basic authentication.
+
+The adapter authenticates with the mWater API using a username and password
+that are POSTed in exchange for a Client ID.
 
 ## Usage
 
@@ -21,16 +26,22 @@ $ sensus-mwater-adapter input.csv
 Process a Sensus CSV, but do not send the mWater HTTP requests.
 
 ```
-$ sensus-mwater-adapter --dry-run input.csv
+$ sensus-mwater-adapter \
+    --to-account abcd0123efgh4567ijkl8910 \
+    --from-account abcd0123efgh4567ijkl8910 \
+    --username mwateruser \
+    --password hunter2 \
+    --dry-run \
+    input.csv
 ```
 
 ### Configuration
 
-customer: Customer ID
-
-to_account: Accounts receivable ID
-
-from_account: Water sales ID
+* username: mWater API username
+* password: mWater API password
+* to-account: Accounts receivable ID
+* from-account: Water sales ID
+* dry-run: Run the program but do not POST to mWater
 
 ### Error Handling
 
@@ -45,6 +56,12 @@ successfully parse. It logs all rows that it was unable to parse.
 ### Replay CSVs
 
 ## Testing
+
+From the root of the sensus-mwater-adapter checkout:
+
+```
+go test -v ./...
+```
 
 Go tests currently run in a GitHub Action on all pushes to main. Pass/fail
 status and coverage percentage are shown in badges on this README.

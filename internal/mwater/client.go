@@ -10,41 +10,32 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	toAccount   = "06f02573df334d2fb740ce82761d8f4e"
-	fromAccount = "e4778eebcb6846898bd962a670bc430c"
-	customerID  = "2c32c34d50e64e3eb50d4101c5673344"
-	username    = "TODO"
-	password    = "TODO"
-)
-
 type Client struct {
-	URL      string
-	ClientID string
+	baseURL string
+	dryRun  bool
 
-	dryRun bool
+	clientID string
 }
 
-func NewClient(url string, dryRun bool) (Client, error) {
-	c := Client{
-		URL:    url,
-		dryRun: dryRun,
+func NewClient(url, un, pw string, dryRun bool) (*Client, error) {
+	c := &Client{
+		baseURL: url,
+		dryRun:  dryRun,
 	}
 	if !dryRun {
-		err := c.doLogin()
+		err := c.doLogin(un, pw)
 		if err != nil {
-			return Client{}, errors.Wrap(err, "error logging in")
+			return nil, errors.Wrap(err, "error logging in")
 		}
 	}
 	return c, nil
 }
 
 type LoginResponse struct {
-	ClientID string
+	ClientID string `json:"client_id"`
 }
 
-func (c Client) doLogin() error {
+func (c *Client) doLogin(username, password string) error {
 	body, err := json.Marshal(map[string]string{
 		"username": username,
 		"password": password,
@@ -61,12 +52,12 @@ func (c Client) doLogin() error {
 	if err != nil {
 		return errors.Wrap(err, "unable to unmarshal response json")
 	}
-	c.ClientID = mwr.ClientID
+	c.clientID = mwr.ClientID
 	return nil
 }
 
-func (c Client) doJSONPost(resource string, body []byte) ([]byte, error) {
-	res, err := http.Post(fmt.Sprintf("%s/%s", c.URL, resource), "application/json", bytes.NewReader(body))
+func (c *Client) doJSONPost(resource string, body []byte) ([]byte, error) {
+	res, err := http.Post(fmt.Sprintf("%s/%s", c.baseURL, resource), "application/json", bytes.NewReader(body))
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to complete post request")
 	}
@@ -82,8 +73,8 @@ func (c Client) doJSONPost(resource string, body []byte) ([]byte, error) {
 // 	ClientID string
 // }
 
-func (c Client) PostCollections(colns Collections) ([]byte, error) {
-	if c.ClientID == "" {
+func (c *Client) PostCollections(colns Collections) ([]byte, error) {
+	if c.clientID == "" {
 		return nil, ErrNoClientID
 	}
 
@@ -93,7 +84,7 @@ func (c Client) PostCollections(colns Collections) ([]byte, error) {
 	}
 
 	object := "transactions"
-	resource := fmt.Sprintf("v3/%s?client=%s", object, c.ClientID)
+	resource := fmt.Sprintf("v3/%s?client=%s", object, c.clientID)
 	out, err := c.doJSONPost(resource, body)
 	if err != nil {
 		return nil, errors.Wrap(err, "error posting object")
