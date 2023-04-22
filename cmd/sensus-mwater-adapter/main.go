@@ -39,13 +39,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	readings, err := sensus.ParseCSV(data)
-	if err != nil {
-		log.Printf("error parsing csv: %s", err.Error())
+	sensusReadings, errs := sensus.ParseCSV(data)
+	if len(errs) > 0 {
+		for _, err := range errs {
+			log.Printf("error parsing csv: %s", err.Error())
+		}
 		os.Exit(1)
 	}
 
-	client, err = mwater.NewClient(mWaterBaseURL, dryRun)
+	mWaterClient, err := mwater.NewClient(mWaterBaseURL, dryRun)
 	if err != nil {
 		log.Printf("error setting up mwater client: %s", err.Error())
 		os.Exit(1)

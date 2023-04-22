@@ -14,12 +14,6 @@ func TestNewTransaction(t *testing.T) {
 	assert.Equal(t, txn.CustomerID, customerID)
 }
 
-func TestSync(t *testing.T) {
-	txn := NewTransaction()
-	txn.Sync(true)
-	assert.Equal(t, txn.CustomerID, customerID)
-}
-
 func TestGenerateID(t *testing.T) {
 	id := generateID()
 	assert.Len(t, id, 32)
@@ -40,7 +34,7 @@ func TestGetTransactionCollections(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		txns = append(txns, getTestTransaction())
 	}
-	cols := getTransactionCollections(txns)
+	cols := GetTransactionCollections(txns)
 	assert.Equal(t, cols.CollectionsToUpsert[0].Name, "custom.ts4.transactions")
 	assert.Len(t, cols.CollectionsToUpsert[0].Entries, 5)
 }
@@ -50,7 +44,7 @@ func TestGetTransactionCollectionsJSON(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		txns = append(txns, getTestTransaction())
 	}
-	cols := getTransactionCollections(txns)
+	cols := GetTransactionCollections(txns)
 	json, err := cols.toJSON()
 	if !assert.Nil(t, err) {
 		return

@@ -71,7 +71,7 @@ func TestPostObjectNotLoggedIn(t *testing.T) {
 	if !assert.Nil(t, err) {
 		return
 	}
-	_, err = client.postCollection("nothing", Collections{})
+	_, err = client.PostCollections(Collections{})
 	if !assert.NotNil(t, err) {
 		return
 	}
@@ -83,7 +83,7 @@ func TestPostObjectDryRun(t *testing.T) {
 	if !assert.Nil(t, err) {
 		return
 	}
-	_, err = client.postCollection("nothing", Collections{})
+	_, err = client.PostCollections(Collections{})
 	if !assert.NotNil(t, err) {
 		return
 	}
@@ -107,7 +107,7 @@ func TestPostObject(t *testing.T) {
 
 	client.ClientID = "nothing"
 
-	out, err := client.postCollection("nothing", Collections{})
+	out, err := client.PostCollections(Collections{})
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -138,7 +138,7 @@ func TestPostCollectionError(t *testing.T) {
 	client.ClientID = "nothing"
 	client.URL = "invalid"
 
-	_, err = client.postCollection("nothing", Collections{})
+	_, err = client.PostCollections(Collections{})
 	if !assert.NotNil(t, err) {
 		return
 	}

@@ -40,7 +40,7 @@ func NewClient(url string, dryRun bool) (Client, error) {
 	return c, nil
 }
 
-type MWaterResponse struct {
+type LoginResponse struct {
 	ClientID string
 }
 
@@ -56,7 +56,7 @@ func (c Client) doLogin() error {
 	if err != nil {
 		return errors.Wrap(err, "error posting login json")
 	}
-	var mwr MWaterResponse
+	var mwr LoginResponse
 	err = json.Unmarshal(out, &mwr)
 	if err != nil {
 		return errors.Wrap(err, "unable to unmarshal response json")
@@ -78,7 +78,11 @@ func (c Client) doJSONPost(resource string, body []byte) ([]byte, error) {
 	return out, nil
 }
 
-func (c Client) postCollection(object string, colns Collections) ([]byte, error) {
+// type Response struct {
+// 	ClientID string
+// }
+
+func (c Client) PostCollections(colns Collections) ([]byte, error) {
 	if c.ClientID == "" {
 		return nil, ErrNoClientID
 	}
@@ -88,6 +92,7 @@ func (c Client) postCollection(object string, colns Collections) ([]byte, error)
 		return nil, errors.Wrap(err, "error marshalling collection to json")
 	}
 
+	object := "transactions"
 	resource := fmt.Sprintf("v3/%s?client=%s", object, c.ClientID)
 	out, err := c.doJSONPost(resource, body)
 	if err != nil {

@@ -3,7 +3,6 @@ package mwater
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/rand"
 )
 
@@ -37,7 +36,7 @@ func (cols Collections) toJSON() ([]byte, error) {
 	return json.Marshal(cols)
 }
 
-func getTransactionCollections(txns []Transaction) Collections {
+func GetTransactionCollections(txns []Transaction) Collections {
 	col := Collection{
 		Name: "custom.ts4.transactions",
 	}
@@ -47,6 +46,14 @@ func getTransactionCollections(txns []Transaction) Collections {
 	return Collections{CollectionsToUpsert: []Collection{col}}
 }
 
+func generateID() string {
+	b := make([]byte, 32)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
+
 func NewTransaction() Transaction {
 	return Transaction{
 		ID:          generateID(),
@@ -54,19 +61,6 @@ func NewTransaction() Transaction {
 		ToAccount:   toAccount,
 		FromAccount: fromAccount,
 	}
-}
-
-func (t Transaction) Sync(dryRun bool) error {
-	fmt.Printf("TODO uploading transaction to mWater %s, %+v\n", t.CustomerID, dryRun)
-	return nil
-}
-
-func generateID() string {
-	b := make([]byte, 32)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-	return string(b)
 }
 
 // {
