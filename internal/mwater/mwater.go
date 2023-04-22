@@ -1,23 +1,10 @@
 package mwater
 
 import (
-	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
-	"net/http"
-
-	"github.com/pkg/errors"
-)
-
-const (
-	letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	toAccount   = "06f02573df334d2fb740ce82761d8f4e"
-	fromAccount = "e4778eebcb6846898bd962a670bc430c"
-	customerID  = "2c32c34d50e64e3eb50d4101c5673344"
-	username    = "TODO"
-	password    = "TODO"
 )
 
 var (
@@ -40,14 +27,14 @@ type Collections struct {
 	CollectionsToDelete []Collection `json:"collectionsToDelete"`
 }
 
-func (cols Collections) toJSON() ([]byte, error) {
-	return json.Marshal(cols)
-}
-
 type Collection struct {
 	Name    string        `json:"collection"`
 	Entries []Transaction `json:"entries"`
 	Bases   []string      `json:"bases"`
+}
+
+func (cols Collections) toJSON() ([]byte, error) {
+	return json.Marshal(cols)
 }
 
 func getTransactionCollections(txns []Transaction) Collections {
@@ -80,77 +67,6 @@ func generateID() string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
-}
-
-type MWaterClient struct {
-	URL      string
-	ClientID string
-
-	dryRun bool
-}
-
-func NewClient(url string, dryRun bool) (MWaterClient, error) {
-	c := MWaterClient{
-		URL:    url,
-		dryRun: dryRun,
-	}
-	if !dryRun {
-		err := c.doLogin()
-		if err != nil {
-			return MWaterClient{}, errors.Wrap(err, "error logging in")
-		}
-	}
-	return c, nil
-}
-
-type MWaterResponse struct {
-	ClientID string
-}
-
-func (c MWaterClient) doLogin() error {
-	body, err := json.Marshal(map[string]string{
-		"username": username,
-		"password": password,
-	})
-	if err != nil {
-		return errors.Wrap(err, "unable to marshal json")
-	}
-	out, err := c.doJSONPost("clients", string(body))
-	if err != nil {
-		return errors.Wrap(err, "error posting login json")
-	}
-	var mwr MWaterResponse
-	err = json.Unmarshal(out, &mwr)
-	if err != nil {
-		return errors.Wrap(err, "unable to unmarshal response json")
-	}
-	c.ClientID = mwr.ClientID
-	return nil
-}
-
-func (c MWaterClient) doJSONPost(resource, body string) ([]byte, error) {
-	res, err := http.Post(fmt.Sprintf("%s/%s", c.URL, resource), "application/json", bytes.NewReader([]byte(body)))
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to complete post request")
-	}
-	defer res.Body.Close()
-	out, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to read response data")
-	}
-	return out, nil
-}
-
-func (c MWaterClient) postCollection(object, body string) ([]byte, error) {
-	if c.ClientID == "" {
-		return nil, ErrNoClientID
-	}
-	resource := fmt.Sprintf("v3/%s?client=%s", object, c.ClientID)
-	out, err := c.doJSONPost(resource, body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error posting object")
-	}
-	return out, nil
 }
 
 // {
