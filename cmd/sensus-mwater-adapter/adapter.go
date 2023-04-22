@@ -7,6 +7,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var ErrEmptyMeterID = errors.New("empty meter id")
+
 func sync(readings []sensus.MeterReading, client mwater.Client) error {
 	txns, err := convertReadingsToTransactions(readings)
 	if err != nil {
@@ -50,6 +52,9 @@ func convertReadingToTransaction(reading sensus.MeterReading) (mwater.Transactio
 }
 
 func getCustomerIDFromMeterID(meterID string) (string, error) {
+	if meterID == "" {
+		return "", ErrEmptyMeterID
+	}
 	return "asdf_" + meterID, nil
 }
 
