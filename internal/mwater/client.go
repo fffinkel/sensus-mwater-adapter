@@ -80,6 +80,8 @@ func (c *Client) PostCollections(colns Collections) ([]byte, error) {
 	}
 
 	if c.dryRun {
+		zz, _ := json.MarshalIndent(colns, "", "\t")
+		fmt.Printf("\n\ndry-run enabled, POST request would have been ---> %s\n", zz)
 		return nil, nil
 	}
 	if c.clientID == "" {
