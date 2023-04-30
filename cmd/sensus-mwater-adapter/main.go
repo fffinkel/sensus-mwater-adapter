@@ -49,10 +49,6 @@ func validateFlags() {
 		log.Println("missing from-account")
 		os.Exit(1)
 	}
-	// if len(os.Args) < 2 {
-	// 	log.Println("csv filename not given")
-	// 	os.Exit(1)
-	// }
 }
 
 func main() {
