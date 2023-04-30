@@ -89,10 +89,7 @@ func TestPostObjectDryRun(t *testing.T) {
 		return
 	}
 	_, err = client.PostCollections(Collections{})
-	if !assert.NotNil(t, err) {
-		return
-	}
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 }
 
 func TestPostObject(t *testing.T) {

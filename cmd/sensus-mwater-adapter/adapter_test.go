@@ -130,13 +130,17 @@ func TestSyncErrorPost(t *testing.T) {
 			MeterID: "this_is_another_test",
 		},
 	}
-	client, err := mwater.NewClient("", "", "", true)
+	client, server, err := getTestClient("", false)
 	if !assert.Nil(t, err) {
 		return
 	}
 	if !assert.NotNil(t, client) {
 		return
 	}
+	if !assert.NotNil(t, server) {
+		return
+	}
+	server.Close()
 
 	err = sync(client, readings)
 	assert.NotNil(t, err)

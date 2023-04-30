@@ -74,13 +74,16 @@ func (c *Client) doJSONPost(resource string, body []byte) ([]byte, error) {
 // }
 
 func (c *Client) PostCollections(colns Collections) ([]byte, error) {
-	if c.clientID == "" {
-		return nil, ErrNoClientID
-	}
-
 	body, err := colns.toJSON()
 	if err != nil {
 		return nil, errors.Wrap(err, "error marshalling collection to json")
+	}
+
+	if c.dryRun {
+		return nil, nil
+	}
+	if c.clientID == "" {
+		return nil, ErrNoClientID
 	}
 
 	object := "transactions"
