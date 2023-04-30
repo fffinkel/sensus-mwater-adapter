@@ -59,9 +59,9 @@ func main() {
 
 	if flag.Arg(0) == "server" {
 		mux := http.NewServeMux()
-		mux.HandleFunc("/upload", uploadHandler)
+		mux.HandleFunc("/sensus", uploadHandler)
 
-		if err := http.ListenAndServe(":4500", mux); err != nil {
+		if err := http.ListenAndServe(":80", mux); err != nil {
 			log.Fatal(err)
 		}
 	}
