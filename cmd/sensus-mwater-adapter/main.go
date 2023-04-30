@@ -29,17 +29,19 @@ func init() {
 }
 
 func validateFlags() {
-	if mWaterBaseURL == "" {
-		log.Println("missing mWater base url")
-		os.Exit(1)
-	}
-	if mWaterUsername == "" {
-		log.Println("missing mWater username")
-		os.Exit(1)
-	}
-	if mWaterPassword == "" {
-		log.Println("missing mWater password")
-		os.Exit(1)
+	if !dryRun {
+		if mWaterBaseURL == "" {
+			log.Println("missing mWater base url")
+			os.Exit(1)
+		}
+		if mWaterUsername == "" {
+			log.Println("missing mWater username")
+			os.Exit(1)
+		}
+		if mWaterPassword == "" {
+			log.Println("missing mWater password")
+			os.Exit(1)
+		}
 	}
 	if toAccount == "" {
 		log.Println("missing to-account")
