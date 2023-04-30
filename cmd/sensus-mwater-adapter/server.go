@@ -10,7 +10,11 @@ import (
 	"time"
 )
 
-const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+const (
+	MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+	uname           = "admin"
+	pword           = "test123"
+)
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "text/html")
@@ -19,7 +23,21 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	u, p, ok := r.BasicAuth()
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusMethodNotAllowed)
+		return
+	}
+	if u != uname {
+		http.Error(w, "unauthorized", http.StatusMethodNotAllowed)
+		return
+	}
+	if p != pword {
+		http.Error(w, "unauthorized", http.StatusMethodNotAllowed)
 		return
 	}
 
