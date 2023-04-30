@@ -11,34 +11,34 @@ import (
 )
 
 var (
-	baseURL     string
-	username    string
-	password    string
-	toAccount   string
-	fromAccount string
-	dryRun      bool
+	mWaterBaseURL  string
+	mWaterUsername string
+	mWaterPassword string
+	toAccount      string
+	fromAccount    string
+	dryRun         bool
 )
 
 func init() {
-	flag.StringVar(&baseURL, "base-url", "", "mWater API base URL, required")
-	flag.StringVar(&username, "username", "", "mWater API username, required")
-	flag.StringVar(&password, "password", "", "mWater API password, required")
+	flag.StringVar(&mWaterBaseURL, "mwater-base-url", "", "mWater API base URL, required")
+	flag.StringVar(&mWaterUsername, "mwater-username", "", "mWater API username, required")
+	flag.StringVar(&mWaterPassword, "mwater-password", "", "mWater API password, required")
 	flag.StringVar(&toAccount, "to-account", "", "accounts receivable")
 	flag.StringVar(&fromAccount, "from-account", "", "water sales account")
 	flag.BoolVar(&dryRun, "dry-run", false, "do not send mWater HTTP requests")
 }
 
 func validateFlags() {
-	if baseURL == "" {
-		log.Println("missing base url")
+	if mWaterBaseURL == "" {
+		log.Println("missing mWater base url")
 		os.Exit(1)
 	}
-	if username == "" {
-		log.Println("missing username")
+	if mWaterUsername == "" {
+		log.Println("missing mWater username")
 		os.Exit(1)
 	}
-	if password == "" {
-		log.Println("missing password")
+	if mWaterPassword == "" {
+		log.Println("missing mWater password")
 		os.Exit(1)
 	}
 	if toAccount == "" {
@@ -90,7 +90,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	mWaterClient, err := mwater.NewClient(baseURL, username, password, dryRun)
+	mWaterClient, err := mwater.NewClient(mWaterBaseURL, mWaterUsername, mWaterPassword, dryRun)
 	if err != nil {
 		log.Printf("error setting up mwater client: %s\n", err.Error())
 		os.Exit(1)
