@@ -3,11 +3,15 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/fffinkel/sensus-mwater-adapter/internal/mwater"
+	"github.com/fffinkel/sensus-mwater-adapter/internal/sensus"
 )
 
 const (
@@ -92,6 +96,33 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	filename := dst.Name()
+	data, err := os.Open(filename)
+	if err != nil {
+		log.Printf("error opening csv [%s]: %s\n", filename, err.Error())
+		os.Exit(1)
+	}
+
+	sensusReadings, errs := sensus.ParseCSV(data)
+	if len(errs) > 0 {
+		for _, err := range errs {
+			log.Printf("error parsing csv: %s\n", err.Error())
+		}
+		os.Exit(1)
+	}
+
+	mWaterClient, err := mwater.NewClient(mWaterBaseURL, mWaterUsername, mWaterPassword, dryRun)
+	if err != nil {
+		log.Printf("error setting up mwater client: %s\n", err.Error())
+		os.Exit(1)
+	}
+
+	err = sync(mWaterClient, sensusReadings)
+	if err != nil {
+		log.Printf("error syncing sensus readings to mwater transaction: %s\n", err.Error())
+		os.Exit(1)
 	}
 
 	fmt.Fprintf(w, "submission received")
