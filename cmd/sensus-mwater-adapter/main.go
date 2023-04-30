@@ -10,6 +10,11 @@ import (
 	"github.com/fffinkel/sensus-mwater-adapter/internal/sensus"
 )
 
+const (
+	adapterUsername = "admin"
+	adapterPassword = "test123"
+)
+
 var (
 	mWaterBaseURL  string
 	mWaterUsername string
