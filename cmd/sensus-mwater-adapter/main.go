@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/fffinkel/sensus-mwater-adapter/internal/mwater"
@@ -57,8 +58,18 @@ func validateFlags() {
 
 func main() {
 	flag.Parse()
-	validateFlags()
 
+	if flag.Arg(0) == "server" {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/", indexHandler)
+		mux.HandleFunc("/upload", uploadHandler)
+
+		if err := http.ListenAndServe(":4500", mux); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	validateFlags()
 	filename := flag.Arg(0)
 	if filename == "" {
 		log.Println("csv filename not given")
