@@ -58,6 +58,7 @@ func validateFlags() {
 
 func main() {
 	flag.Parse()
+	validateFlags()
 
 	if flag.Arg(0) == "server" {
 		mux := http.NewServeMux()
@@ -69,7 +70,6 @@ func main() {
 		}
 	}
 
-	validateFlags()
 	filename := flag.Arg(0)
 	if filename == "" {
 		log.Println("csv filename not given")
