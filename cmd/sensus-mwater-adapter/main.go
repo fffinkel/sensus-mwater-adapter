@@ -23,8 +23,8 @@ func init() {
 	flag.StringVar(&mWaterBaseURL, "mwater-base-url", "", "mWater API base URL, required")
 	flag.StringVar(&mWaterUsername, "mwater-username", "", "mWater API username, required")
 	flag.StringVar(&mWaterPassword, "mwater-password", "", "mWater API password, required")
-	flag.StringVar(&toAccount, "to-account", "", "accounts receivable")
-	flag.StringVar(&fromAccount, "from-account", "", "water sales account")
+	flag.StringVar(&toAccount, "mwater-to-account", "", "accounts receivable")
+	flag.StringVar(&fromAccount, "mwater-from-account", "", "water sales account")
 	flag.BoolVar(&dryRun, "dry-run", false, "do not send mWater HTTP requests")
 }
 
@@ -49,11 +49,10 @@ func validateFlags() {
 		log.Println("missing from-account")
 		os.Exit(1)
 	}
-	if len(os.Args) < 2 {
-		log.Println("csv filename not given")
-		os.Exit(1)
-	}
-
+	// if len(os.Args) < 2 {
+	// 	log.Println("csv filename not given")
+	// 	os.Exit(1)
+	// }
 }
 
 func main() {
