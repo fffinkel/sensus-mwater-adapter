@@ -78,7 +78,14 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dst, err := os.Create(fmt.Sprintf("./uploads/%d%s", time.Now().UnixNano(), filepath.Ext(fileHeader.Filename)))
+	t := time.Now().UTC()
+	// TODO add some kind of source identifier to this
+	f := fmt.Sprintf("%04d%02d%02d_%02d%02d%02d_%03d",
+		t.Year(), t.Month(), t.Day(),
+		t.Hour(), t.Minute(), t.Second(),
+		t.Nanosecond()/1000/1000)
+
+	dst, err := os.Create(fmt.Sprintf("./uploads/%s%s", f, filepath.Ext(fileHeader.Filename)))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
