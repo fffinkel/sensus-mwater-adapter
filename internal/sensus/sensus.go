@@ -117,6 +117,7 @@ func ParseCSV(f io.Reader, filename string) ([]MeterReading, []error) {
 		line += 1
 		if header {
 			if len(record) != 11 {
+				log.Printf("invalid csv header (%s line %d), cannot continue", filename, line)
 				return []MeterReading{}, []error{ErrInvalidHeader}
 			}
 			header = false
