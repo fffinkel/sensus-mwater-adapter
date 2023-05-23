@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -22,6 +23,7 @@ var (
 	toAccount      string
 	fromAccount    string
 	dryRun         bool
+	listenPort     int
 )
 
 func init() {
@@ -31,6 +33,7 @@ func init() {
 	flag.StringVar(&toAccount, "mwater-to-account", "", "accounts receivable")
 	flag.StringVar(&fromAccount, "mwater-from-account", "", "water sales account")
 	flag.BoolVar(&dryRun, "dry-run", false, "do not send mWater HTTP requests")
+	flag.IntVar(&listenPort, "port", 80, "port to listen on")
 }
 
 func validateFlags() {
@@ -63,10 +66,12 @@ func main() {
 	validateFlags()
 
 	if flag.Arg(0) == "server" {
-		mux := http.NewServeMux()
-		mux.HandleFunc("/sensus", uploadHandler)
 
-		if err := http.ListenAndServe(":80", mux); err != nil {
+		//mux := http.NewServeMux()
+		//mux.HandleFunc("/sensus", uploadHandler)
+		http.HandleFunc("/sensus", uploadHandler)
+		log.Printf("listening on port %d\n", listenPort)
+		if err := http.ListenAndServe(fmt.Sprintf(":%d", listenPort), nil); err != nil {
 			log.Fatal(err)
 		}
 	}
