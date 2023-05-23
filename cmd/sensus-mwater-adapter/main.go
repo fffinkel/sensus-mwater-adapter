@@ -88,7 +88,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	sensusReadings, errs := sensus.ParseCSV(data)
+	sensusReadings, errs := sensus.ParseCSV(data, filename)
 	if len(errs) > 0 {
 		for _, err := range errs {
 			log.Printf("error parsing csv: %s\n", err.Error())

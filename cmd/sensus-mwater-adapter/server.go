@@ -70,8 +70,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	filetype := http.DetectContentType(buff)
 	// TODO why octet-stream?
-	// if !strings.HasPrefix(filetype, "text/") || !strings.HasPrefix(filetype, "application/octet-stream") {
-	if !strings.HasPrefix(filetype, "text/") {
+	if !strings.HasPrefix(filetype, "text/") && !strings.HasPrefix(filetype, "application/octet-stream") {
+		// if !strings.HasPrefix(filetype, "text/") {
 		log.Printf("file format not allowed: %s", filetype)
 		http.Error(w, fmt.Sprintf("file format not allowed: %s", filetype), http.StatusBadRequest)
 		return
@@ -90,16 +90,17 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := time.Now().UTC()
+	now := time.Now().UTC()
 	// TODO add some kind of source identifier to this
-	f := fmt.Sprintf("%04d%02d%02d_%02d%02d%02d_%03d",
-		t.Year(), t.Month(), t.Day(),
-		t.Hour(), t.Minute(), t.Second(),
-		t.Nanosecond()/1000/1000)
+	filename := fmt.Sprintf("%04d%02d%02d_%02d%02d%02d_%03d%s",
+		now.Year(), now.Month(), now.Day(),
+		now.Hour(), now.Minute(), now.Second(),
+		now.Nanosecond()/1000/1000, filepath.Ext(fileHeader.Filename))
 
-	dst, err := os.Create(fmt.Sprintf("./uploads/%s%s", f, filepath.Ext(fileHeader.Filename)))
+	// TODO not a portable path
+	dst, err := os.Create(fmt.Sprintf("./uploads/%s", filename))
 	if err != nil {
-		log.Printf("error creating local file [%s]: %s\n", f, err.Error())
+		log.Printf("error creating local file [%s]: %s\n", filename, err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -113,20 +114,20 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filename := dst.Name()
-	data, err := os.Open(filename)
+	filepath := dst.Name()
+	data, err := os.Open(filepath)
 	if err != nil {
-		log.Printf("error opening csv [%s]: %s\n", filename, err.Error())
-		// os.Exit(1)
+		log.Printf("error opening csv [%s]: %s\n", filepath, err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	sensusReadings, errs := sensus.ParseCSV(data)
+	sensusReadings, errs := sensus.ParseCSV(data, filename)
 	if len(errs) > 0 {
-		for _, err := range errs {
-			log.Printf("error parsing csv: %s\n", err.Error())
-		}
+		// TODO this is re-logging
+		// for _, err := range errs {
+		// 	log.Printf("error parsing csv [%s]: %s\n", filepath, err.Error())
+		// }
 		http.Error(w, "errors parsing some csv lines", http.StatusInternalServerError)
 		return
 	}

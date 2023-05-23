@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	ErrInvalidField  = errors.New("invalid field found in record")
+	ErrInvalidField  = errors.New("invalid field in record")
 	ErrInvalidRecord = errors.New("invalid record format")
 	ErrInvalidHeader = errors.New("invalid CSV header")
 )
@@ -32,7 +32,7 @@ type MeterReading struct {
 }
 
 func errField(id, name string, err error) error {
-	return fmt.Errorf("%w '%s' in field '%s': %s", ErrInvalidField, id, name, err)
+	return fmt.Errorf("%w '%s' field '%s': %s", ErrInvalidField, id, name, err)
 }
 
 func newMeterReading(id string, value int) (MeterReading, error) {
@@ -105,14 +105,16 @@ func newMeterReadingFromRecord(r []string) (MeterReading, error) {
 	}, nil
 }
 
-func ParseCSV(f io.Reader) ([]MeterReading, []error) {
-	log.Print("parsing started")
+func ParseCSV(f io.Reader, filename string) ([]MeterReading, []error) {
+	log.Printf("parsing started for file %s", filename)
 	r := csv.NewReader(f)
 	mrs := make([]MeterReading, 0)
 	header := true
 	var errs []error
+	line := 0
 	for {
 		record, err := r.Read()
+		line += 1
 		if header {
 			if len(record) != 11 {
 				return []MeterReading{}, []error{ErrInvalidHeader}
@@ -124,18 +126,18 @@ func ParseCSV(f io.Reader) ([]MeterReading, []error) {
 			break
 		}
 		if err != nil {
-			log.Printf("error reading csv line: %s", err.Error())
+			log.Printf("error reading csv line (%s line %d): %s", filename, line, err.Error())
 			errs = append(errs, err)
 			continue
 		}
 		mr, err := newMeterReadingFromRecord(record)
 		if err != nil {
-			log.Printf("error parsing csv record: %s", err.Error())
+			log.Printf("error parsing csv record (%s line %d): %s", filename, line, err.Error())
 			errs = append(errs, err)
 		} else {
 			mrs = append(mrs, mr)
 		}
 	}
-	log.Printf("parsing finished: %d successful, %d errors", len(mrs), len(errs))
+	log.Printf("parsing finished for file %s: %d successful, %d errors", filename, len(mrs), len(errs))
 	return mrs, errs
 }
