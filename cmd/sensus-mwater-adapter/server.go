@@ -36,6 +36,32 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err := os.MkdirAll("./uploads", os.ModePerm)
+	if err != nil {
+		log.Printf("error making local file dir: %s\n", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	now := time.Now().UTC()
+	// TODO add some kind of source identifier to this
+	filename := fmt.Sprintf("%04d%02d%02d_%02d%02d%02d_%03d",
+		now.Year(), now.Month(), now.Day(),
+		now.Hour(), now.Minute(), now.Second(),
+		now.Nanosecond()/1000/1000)
+
+	requestInfo := fmt.Sprintf(
+		"username: %s\nmethod: %s\nremote_addr: %s\nheaders: %+v",
+		username, r.Method, r.RemoteAddr, r.Header)
+
+	metaFilename := filename + ".meta"
+	err = os.WriteFile(fmt.Sprintf("./uploads/%s", metaFilename), []byte(requestInfo), 0644)
+	if err != nil {
+		log.Printf("error creating local file [%s]: %s\n", metaFilename, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	// check method
 	if r.Method != "POST" {
 		log.Printf("disallowed method: %s", r.Method)
@@ -83,38 +109,25 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = os.MkdirAll("./uploads", os.ModePerm)
-	if err != nil {
-		log.Printf("error making local file dir: %s\n", err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	now := time.Now().UTC()
-	// TODO add some kind of source identifier to this
-	filename := fmt.Sprintf("%04d%02d%02d_%02d%02d%02d_%03d%s",
-		now.Year(), now.Month(), now.Day(),
-		now.Hour(), now.Minute(), now.Second(),
-		now.Nanosecond()/1000/1000, filepath.Ext(fileHeader.Filename))
+	csvFilename := filename + filepath.Ext(fileHeader.Filename)
 
 	// TODO not a portable path
-	dst, err := os.Create(fmt.Sprintf("./uploads/%s", filename))
+	csvFile, err := os.Create(fmt.Sprintf("./uploads/%s", csvFilename))
 	if err != nil {
-		log.Printf("error creating local file [%s]: %s\n", filename, err.Error())
+		log.Printf("error creating local file [%s]: %s\n", csvFilename, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer csvFile.Close()
+
+	_, err = io.Copy(csvFile, file)
+	if err != nil {
+		log.Printf("error writing local file [%s]: %s\n", csvFile.Name(), err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	defer dst.Close()
-
-	_, err = io.Copy(dst, file)
-	if err != nil {
-		log.Printf("error writing local file [%s]: %s\n", dst.Name(), err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	filepath := dst.Name()
+	filepath := csvFile.Name()
 	data, err := os.Open(filepath)
 	if err != nil {
 		log.Printf("error opening csv [%s]: %s\n", filepath, err.Error())
@@ -122,7 +135,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sensusReadings, errs := sensus.ParseCSV(data, filename)
+	sensusReadings, errs := sensus.ParseCSV(data, csvFilename)
 	if len(errs) > 0 {
 		// TODO this is re-logging
 		// for _, err := range errs {
