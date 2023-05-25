@@ -14,7 +14,10 @@ import (
 	"github.com/fffinkel/sensus-mwater-adapter/internal/sensus"
 )
 
-const maxUploadSize = 1024 * 1024 // 1MB
+const (
+	maxUploadSize = 1024 * 1024 // 1MB
+	logFileDir    = "uploads"
+)
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -36,7 +39,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := os.MkdirAll("./uploads", os.ModePerm)
+	err := os.MkdirAll(logFileDir, os.ModePerm)
 	if err != nil {
 		log.Printf("error making local file dir: %s\n", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -55,7 +58,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		username, r.Method, r.RemoteAddr, r.Header)
 
 	metaFilename := filename + ".meta"
-	err = os.WriteFile(fmt.Sprintf("./uploads/%s", metaFilename), []byte(requestInfo), 0644)
+	err = os.WriteFile(fmt.Sprintf("%s/%s", logFileDir, metaFilename), []byte(requestInfo), 0644)
 	if err != nil {
 		log.Printf("error creating local file [%s]: %s\n", metaFilename, err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -112,7 +115,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	csvFilename := filename + filepath.Ext(fileHeader.Filename)
 
 	// TODO not a portable path
-	csvFile, err := os.Create(fmt.Sprintf("./uploads/%s", csvFilename))
+	csvFile, err := os.Create(fmt.Sprintf("%s/%s", logFileDir, csvFilename))
 	if err != nil {
 		log.Printf("error creating local file [%s]: %s\n", csvFilename, err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
