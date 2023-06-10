@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/fffinkel/sensus-mwater-adapter/internal/mwater"
@@ -12,6 +14,16 @@ import (
 const (
 	adapterUsername = "admin"
 	adapterPassword = "test123"
+)
+
+var (
+	mWaterBaseURL  string
+	mWaterUsername string
+	mWaterPassword string
+	toAccount      string
+	fromAccount    string
+	dryRun         bool
+	listenPort     int
 )
 
 func init() {
@@ -49,9 +61,20 @@ func validateFlags() {
 	}
 }
 
-func run_command() {
+func main() {
 	flag.Parse()
 	validateFlags()
+
+	if flag.Arg(0) == "server" {
+
+		//mux := http.NewServeMux()
+		//mux.HandleFunc("/sensus", uploadHandler)
+		http.HandleFunc("/sensus", uploadHandler)
+		log.Printf("listening on port %d\n", listenPort)
+		if err := http.ListenAndServe(fmt.Sprintf(":%d", listenPort), nil); err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	filename := flag.Arg(0)
 	if filename == "" {
