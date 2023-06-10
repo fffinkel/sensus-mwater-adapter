@@ -5,8 +5,8 @@
     "packageVersions": {},
     "actionVersions": {
       "fffinkel/sensus-mwater-adapter": {
-        "digest": "c2061d1e7bba264ef131c86f15ef568fb824d6e452926e6f1f984ac10e97b840",
-        "version": "0.0.8"
+        "digest": "461e6ecc0a941b81c2771b86f8b4fa33f4ccf8ec427841a7a860d811f2f8d5a7",
+        "version": "0.0.1"
       }
     },
     "webHashes": {}

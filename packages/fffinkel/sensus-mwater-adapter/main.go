@@ -1,19 +1,10 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-
-	"github.com/fffinkel/sensus-mwater-adapter/internal/mwater"
-	"github.com/fffinkel/sensus-mwater-adapter/internal/sensus"
-)
-
-const (
-	adapterUsername = "admin"
-	adapterPassword = "test123"
+	"strconv"
 )
 
 var (
@@ -26,17 +17,7 @@ var (
 	listenPort     int
 )
 
-func init() {
-	flag.StringVar(&mWaterBaseURL, "mwater-base-url", "", "mWater API base URL, required")
-	flag.StringVar(&mWaterUsername, "mwater-username", "", "mWater API username, required")
-	flag.StringVar(&mWaterPassword, "mwater-password", "", "mWater API password, required")
-	flag.StringVar(&toAccount, "mwater-to-account", "", "accounts receivable")
-	flag.StringVar(&fromAccount, "mwater-from-account", "", "water sales account")
-	flag.BoolVar(&dryRun, "dry-run", false, "do not send mWater HTTP requests")
-	flag.IntVar(&listenPort, "port", 80, "port to listen on")
-}
-
-func validateFlags() {
+func v() {
 	if !dryRun {
 		if mWaterBaseURL == "" {
 			log.Println("missing mWater base url")
@@ -62,7 +43,8 @@ func validateFlags() {
 }
 
 type Request struct {
-	Name string `json:"name"`
+	Name string      `json:"name"`
+	Http interface{} `json:"http"`
 }
 
 type Response struct {
@@ -72,59 +54,21 @@ type Response struct {
 }
 
 func Main(in Request) (*Response, error) {
+	log.Print("listening on: " + strconv.Itoa(listenPort))
+	log.Printf("hmmm: %+v", in.Http)
 	if in.Name == "" {
-		in.Name = "fart"
+		in.Name = "test"
 	}
 
 	return &Response{
 		Body: fmt.Sprintf("Hello %s!", in.Name),
 	}, nil
-}
 
-func mmain() {
-	flag.Parse()
-	validateFlags()
-
-	if flag.Arg(0) == "server" {
-
-		//mux := http.NewServeMux()
-		//mux.HandleFunc("/sensus", uploadHandler)
-		http.HandleFunc("/sensus", uploadHandler)
-		log.Printf("listening on port %d\n", listenPort)
-		if err := http.ListenAndServe(fmt.Sprintf(":%d", listenPort), nil); err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	filename := flag.Arg(0)
-	if filename == "" {
-		log.Println("csv filename not given")
-		os.Exit(1)
-	}
-
-	data, err := os.Open(filename)
-	if err != nil {
-		log.Printf("error opening csv [%s]: %s\n", filename, err.Error())
-		os.Exit(1)
-	}
-
-	sensusReadings, errs := sensus.ParseCSV(data, filename)
-	if len(errs) > 0 {
-		for _, err := range errs {
-			log.Printf("error parsing csv: %s\n", err.Error())
-		}
-		os.Exit(1)
-	}
-
-	mWaterClient, err := mwater.NewClient(mWaterBaseURL, mWaterUsername, mWaterPassword, dryRun)
-	if err != nil {
-		log.Printf("error setting up mwater client: %s\n", err.Error())
-		os.Exit(1)
-	}
-
-	err = sync(mWaterClient, sensusReadings)
-	if err != nil {
-		log.Printf("error syncing sensus readings to mwater transaction: %s\n", err.Error())
-		os.Exit(1)
-	}
+	//mux := http.NewServeMux()
+	//mux.HandleFunc("/sensus", uploadHandler)
+	// http.HandleFunc("/sensus", uploadHandler)
+	// log.Printf("listening on port %d\n", listenPort)
+	// if err := http.ListenAndServe(fmt.Sprintf(":%d", listenPort), nil); err != nil {
+	// 	log.Fatal(err)
+	// }
 }
