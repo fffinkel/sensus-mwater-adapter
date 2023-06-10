@@ -1,0 +1,14 @@
+[
+  {
+    "apihost": "https://faas-nyc1-2ef2e6cc.doserverless.co",
+    "namespace": "fn-7b810d12-cfdb-4b8c-bce1-5975f0862bc4",
+    "packageVersions": {},
+    "actionVersions": {
+      "fffinkel/sensus-mwater-adapter": {
+        "digest": "c2061d1e7bba264ef131c86f15ef568fb824d6e452926e6f1f984ac10e97b840",
+        "version": "0.0.8"
+      }
+    },
+    "webHashes": {}
+  }
+]
