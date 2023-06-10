@@ -61,7 +61,7 @@ func validateFlags() {
 	}
 }
 
-func main() {
+func Main(args map[string]interface{}) map[string]interface{} {
 	flag.Parse()
 	validateFlags()
 
