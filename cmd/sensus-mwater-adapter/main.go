@@ -72,8 +72,13 @@ func main() {
 		//mux := http.NewServeMux()
 		//mux.HandleFunc("/sensus", uploadHandler)
 		http.HandleFunc("/sensus", uploadHandler)
+		port, err := strconv.Atoi(listenPort)
+		if err != nil {
+			log.Println("error getting listen port")
+			os.Exit(1)
+		}
 		log.Printf("listening on port %d\n", listenPort)
-		if err := http.ListenAndServe(fmt.Sprintf(":%d", strconv.Atoi(listenPort)), nil); err != nil {
+		if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
 			log.Fatal(err)
 		}
 	}
