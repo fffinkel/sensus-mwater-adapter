@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/fffinkel/sensus-mwater-adapter/internal/mwater"
 	"github.com/fffinkel/sensus-mwater-adapter/internal/sensus"
 
@@ -10,7 +12,17 @@ import (
 var ErrEmptyMeterID = errors.New("empty meter id")
 
 func sync(client *mwater.Client, readings []sensus.MeterReading) error {
-	txns, err := convertReadingsToTransactions(readings)
+	cl, err := client.GetCustomerInfoList()
+	if err != nil {
+		return errors.Wrap(err, "error getting customer list")
+	}
+
+	customers := map[string]mwater.CustomerInfo{}
+	for _, v := range cl {
+		customers[v.Code] = v
+	}
+
+	txns, err := convertReadingsToTransactions(readings, customers)
 	if err != nil {
 		return errors.Wrap(err, "error converting readings to transactions")
 	}
@@ -23,37 +35,38 @@ func sync(client *mwater.Client, readings []sensus.MeterReading) error {
 	return nil
 }
 
-func convertReadingsToTransactions(readings []sensus.MeterReading) ([]mwater.Transaction, error) {
-	txns := make([]mwater.Transaction, len(readings))
-	var err error
+func convertReadingsToTransactions(readings []sensus.MeterReading, customers map[string]mwater.CustomerInfo) ([]mwater.Transaction, error) {
+	txns := make([]mwater.Transaction, 0)
 	for i, _ := range readings {
-		txns[i], err = convertReadingToTransaction(readings[i])
-		if err != nil {
-			return nil, err // TODO
+		customer, ok := customers[readings[i].MeterID]
+		if !ok {
+			fmt.Println("could not find customer for meter id: " + readings[i].MeterID)
+			continue
 		}
+		txn, err := convertReadingToTransaction(readings[i], customer)
+		if err != nil {
+			fmt.Println("error converting sensus reading to mwater transaction: " + err.Error())
+			continue
+		}
+		txns = append(txns, txn)
 	}
 	return txns, nil
 }
 
-func convertReadingToTransaction(reading sensus.MeterReading) (mwater.Transaction, error) {
-	lastReadingValue, err := getLastReadingValue(reading.MeterID)
-	if err != nil {
-		return mwater.Transaction{}, err
+func convertReadingToTransaction(reading sensus.MeterReading, customer mwater.CustomerInfo) (mwater.Transaction, error) {
+
+	meterEnd := float64(reading.ReadingValue)
+	if meterEnd < customer.LatestReading {
+		return mwater.Transaction{}, errors.New("current reading is less than latest reading")
 	}
+
 	txn := mwater.NewTransaction()
 	txn.Date = reading.ReadingTimestamp.Format("2006-01-02")
-	txn.CustomerID = reading.MeterID
+	txn.CustomerID = customer.CustomerID
 	txn.ToAccount = toAccount
 	txn.FromAccount = fromAccount
-	txn.MeterStart = lastReadingValue
-	txn.MeterEnd = float64(reading.ReadingValue)
-	txn.Amount = txn.MeterEnd - txn.MeterStart
+	txn.MeterStart = customer.LatestReading
+	txn.MeterEnd = meterEnd
+	txn.Amount = (meterEnd - customer.LatestReading) * customer.TarriffPrice
 	return txn, nil
-}
-
-func getLastReadingValue(meterID string) (float64, error) {
-	if meterID == "" {
-		return 0, ErrEmptyMeterID
-	}
-	return 1000000.0, nil
 }

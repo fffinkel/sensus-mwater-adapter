@@ -35,6 +35,7 @@ func init() {
 	if os.Getenv("LISTEN_PORT") != "" {
 		listenPort = os.Getenv("LISTEN_PORT")
 	}
+	// dryRun = true
 }
 
 func validateEnv() {

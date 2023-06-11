@@ -2,11 +2,13 @@ package mwater
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -79,10 +81,33 @@ func (c *Client) doJSONPost(resource string, body []byte) ([]byte, error) {
 	return out, nil
 }
 
+func (c *Client) doGet(resource string, params map[string]string) ([]byte, error) {
+	paramList := []string{}
+	for k, v := range params {
+		paramList = append(paramList, fmt.Sprintf("%s=%s", k, v))
+	}
+	res, err := http.Get(fmt.Sprintf("%s/%s?%s", c.baseURL, resource, strings.Join(paramList, "&")))
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to complete post request")
+	}
+	defer res.Body.Close()
+	out, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to read response data")
+	}
+	if res.StatusCode > 299 {
+		fmt.Printf("\n\nresponse body ----------> %s\n", out)
+		return nil, errors.New("got a response status we didn't expect: " + strconv.Itoa(res.StatusCode))
+	}
+	return out, nil
+}
+
 func (c *Client) PostCollections(colns Collections) ([]byte, error) {
 
+	c.GetCustomerInfoList()
+
 	zz, _ := json.MarshalIndent(colns, "", "\t")
-	fmt.Printf("\n\n----------> %s\n", zz)
+	fmt.Printf("\n\n-post collection request---------> %s\n", zz)
 
 	body, err := colns.toJSON()
 	if err != nil {
@@ -104,6 +129,33 @@ func (c *Client) PostCollections(colns Collections) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error posting object")
 	}
-	fmt.Printf("\n\n----------> %s\n", out)
 	return out, nil
+}
+
+type CustomerInfo struct {
+	Code          string  `json:"code"`
+	Name          string  `json:"name"`
+	LatestReading float64 `json:"latest_reading"`
+	TarriffPrice  float64 `json:"tariff_price"`
+	CustomerID    string  `json:"_id"`
+}
+
+//go:embed customers.jsonql
+var jsonqlEncoded string
+
+// TODO error handling
+// TODO return value
+func (c *Client) GetCustomerInfoList() ([]CustomerInfo, error) {
+	jsonql := strings.TrimSuffix(jsonqlEncoded, "\n")
+	out, err := c.doGet("jsonql", map[string]string{"client": c.clientID, "jsonql": jsonql})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting customer list")
+	}
+	var ci []CustomerInfo
+	err = json.Unmarshal(out, &ci)
+	if err != nil {
+		fmt.Printf("\n\nresponse body ----------> %s\n", out)
+		return nil, errors.Wrap(err, "unable to unmarshal response json")
+	}
+	return ci, nil
 }
