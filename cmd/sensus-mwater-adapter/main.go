@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -22,32 +21,32 @@ var (
 	mWaterPassword string
 	toAccount      string
 	fromAccount    string
+	listenPort     string
 	dryRun         bool
-	listenPort     int
 )
 
 func init() {
-	flag.StringVar(&mWaterBaseURL, "mwater-base-url", "", "mWater API base URL, required")
-	flag.StringVar(&mWaterUsername, "mwater-username", "", "mWater API username, required")
-	flag.StringVar(&mWaterPassword, "mwater-password", "", "mWater API password, required")
-	flag.StringVar(&toAccount, "mwater-to-account", "", "accounts receivable")
-	flag.StringVar(&fromAccount, "mwater-from-account", "", "water sales account")
-	flag.BoolVar(&dryRun, "dry-run", false, "do not send mWater HTTP requests")
-	flag.IntVar(&listenPort, "port", 80, "port to listen on")
+	mWaterBaseURL = os.Getenv("MWATER_API_BASEURL")
+	mWaterUsername = os.Getenv("MWATER_API_USERNAME")
+	mWaterPassword = os.Getenv("MWATER_API_PASSWORD")
+	toAccount = os.Getenv("MWATER_TO_ACCOUNT")
+	fromAccount = os.Getenv("MWATER_FROM_ACCOUNT")
+	listenPort = "80"
+	if os.Getenv("LISTEN_PORT") != "" {
+		listenPort = os.Getenv("LISTEN_PORT")
+	}
 }
 
-func validateFlags() {
+func validateEnv() {
 	if !dryRun {
 		if mWaterBaseURL == "" {
 			log.Println("missing mWater base url")
 			os.Exit(1)
 		}
-		fmt.Printf("\n\n----------> %s\n", mWaterUsername)
 		if mWaterUsername == "" {
 			log.Println("missing mWater username")
 			os.Exit(1)
 		}
-		fmt.Printf("\n\n----------> %s\n", mWaterPassword)
 		if mWaterPassword == "" {
 			log.Println("missing mWater password")
 			os.Exit(1)
@@ -64,10 +63,9 @@ func validateFlags() {
 }
 
 func main() {
-	flag.Parse()
-	validateFlags()
+	validateEnv()
 
-	if flag.Arg(0) == "server" {
+	if os.Args[1] == "server" {
 
 		//mux := http.NewServeMux()
 		//mux.HandleFunc("/sensus", uploadHandler)
@@ -78,7 +76,7 @@ func main() {
 		}
 	}
 
-	filename := flag.Arg(0)
+	filename := os.Args[1]
 	if filename == "" {
 		log.Println("csv filename not given")
 		os.Exit(1)

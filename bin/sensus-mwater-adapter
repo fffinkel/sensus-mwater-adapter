@@ -1,5 +1,7 @@
 #!/bin/sh
 
+source .env
+
 BINPATH=$(dirname $0)
 PKGPATH=$BINPATH/..
 
