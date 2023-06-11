@@ -42,10 +42,12 @@ func validateFlags() {
 			log.Println("missing mWater base url")
 			os.Exit(1)
 		}
+		fmt.Printf("\n\n----------> %s\n", mWaterUsername)
 		if mWaterUsername == "" {
 			log.Println("missing mWater username")
 			os.Exit(1)
 		}
+		fmt.Printf("\n\n----------> %s\n", mWaterPassword)
 		if mWaterPassword == "" {
 			log.Println("missing mWater password")
 			os.Exit(1)

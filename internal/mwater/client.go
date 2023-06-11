@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -32,7 +33,8 @@ func NewClient(url, un, pw string, dryRun bool) (*Client, error) {
 }
 
 type LoginResponse struct {
-	ClientID string `json:"client_id"`
+	ClientID string `json:"client"`
+	Error    string `json:"error"`
 }
 
 func (c *Client) doLogin(username, password string) error {
@@ -50,7 +52,11 @@ func (c *Client) doLogin(username, password string) error {
 	var mwr LoginResponse
 	err = json.Unmarshal(out, &mwr)
 	if err != nil {
+		fmt.Printf("\n\nresponse body ----------> %s\n", out)
 		return errors.Wrap(err, "unable to unmarshal response json")
+	}
+	if mwr.Error != "" {
+		return errors.New("login error: " + mwr.Error)
 	}
 	c.clientID = mwr.ClientID
 	return nil
@@ -66,14 +72,18 @@ func (c *Client) doJSONPost(resource string, body []byte) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to read response data")
 	}
+	if res.StatusCode > 299 {
+		fmt.Printf("\n\nresponse body ----------> %s\n", out)
+		return nil, errors.New("got a response status we didn't expect: " + strconv.Itoa(res.StatusCode))
+	}
 	return out, nil
 }
 
-// type Response struct {
-// 	ClientID string
-// }
-
 func (c *Client) PostCollections(colns Collections) ([]byte, error) {
+
+	zz, _ := json.MarshalIndent(colns, "", "\t")
+	fmt.Printf("\n\n----------> %s\n", zz)
+
 	body, err := colns.toJSON()
 	if err != nil {
 		return nil, errors.Wrap(err, "error marshalling collection to json")
@@ -88,11 +98,12 @@ func (c *Client) PostCollections(colns Collections) ([]byte, error) {
 		return nil, ErrNoClientID
 	}
 
-	object := "transactions"
-	resource := fmt.Sprintf("v3/%s?client=%s", object, c.clientID)
+	object := "multi_push"
+	resource := fmt.Sprintf("%s?client=%s", object, c.clientID)
 	out, err := c.doJSONPost(resource, body)
 	if err != nil {
 		return nil, errors.Wrap(err, "error posting object")
 	}
+	fmt.Printf("\n\n----------> %s\n", out)
 	return out, nil
 }
