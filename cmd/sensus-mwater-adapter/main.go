@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/fffinkel/sensus-mwater-adapter/internal/mwater"
 	"github.com/fffinkel/sensus-mwater-adapter/internal/sensus"
@@ -72,7 +73,7 @@ func main() {
 		//mux.HandleFunc("/sensus", uploadHandler)
 		http.HandleFunc("/sensus", uploadHandler)
 		log.Printf("listening on port %d\n", listenPort)
-		if err := http.ListenAndServe(fmt.Sprintf(":%d", listenPort), nil); err != nil {
+		if err := http.ListenAndServe(fmt.Sprintf(":%d", strconv.Atoi(listenPort)), nil); err != nil {
 			log.Fatal(err)
 		}
 	}
